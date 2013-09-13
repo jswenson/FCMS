@@ -1,0 +1,63 @@
+
+<!doctype html>
+<title>Financial Data for Futures commission merchants</title>
+<link rel="stylesheet" type="text/css" href="d3/para.css">
+<style>
+/* data table styles */
+#grid { height: 198px; }
+.row, .header { clear: left; font-size: 10px; line-height: 12px; height: 12px; }
+.row:nth-child(odd) { background: rgba(0,0,0,0.05); }
+.header { font-weight: bold; }
+.cell { float: left; overflow: hidden; white-space: nowrap; width: 100px; height: 12px; }
+.col-0 { width: 180px; }
+</style>
+<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
+<script src="d3/para.js"></script>
+<script src="d3/divgrid.js"></script>
+<h1>Financial Data for Futures commission merchants (July 31, 2013)</h1>
+<div id="example" class="parcoords" style="height:520px;"></div>
+<div id="grid"></div>
+<script id="brushing">// quantitative color scale
+var blue_to_brown = d3.scale.linear()
+  .domain([9, 50])
+  .range(["blue", "brown"])
+  .interpolate(d3.interpolateLab);
+
+var color = function(d) { return blue_to_brown(d['economy (mpg)']); };
+
+var parcoords = d3.parcoords()("#example")
+  .color(color)
+  .alpha(0.4);
+
+// load csv file and create the chart
+d3.csv('fcmdata.csv', function(data) {
+  parcoords
+    .data(data)
+    .render()
+    .brushable();  // enable brushing
+
+  // create data table, row hover highlighting
+  var grid = d3.divgrid();
+  d3.select("#grid")
+    .datum(data.slice(0,46))
+    .call(grid)
+    .selectAll(".row")
+    .on({
+      "mouseover": function(d) { parcoords.highlight([d]) },
+      "mouseout": parcoords.unhighlight
+    });
+
+  // update data table on brush event
+  parcoords.on("brush", function(d) {
+    d3.select("#grid")
+      .datum(d.slice(0,46))
+      .call(grid)
+      .selectAll(".row")
+      .on({
+        "mouseover": function(d) { parcoords.highlight([d]) },
+        "mouseout": parcoords.unhighlight
+      });
+  });
+});
+</script>
